@@ -13,6 +13,11 @@ namespace DOOR.EF.Models
         {
             Courses = new HashSet<Course>();
             Enrollments = new HashSet<Enrollment>();
+            GradeConversions = new HashSet<GradeConversion>();
+            GradeTypeWeights = new HashSet<GradeTypeWeight>();
+            GradeTypes = new HashSet<GradeType>();
+            Grades = new HashSet<Grade>();
+            Instructors = new HashSet<Instructor>();
             Sections = new HashSet<Section>();
             Students = new HashSet<Student>();
         }
@@ -42,6 +47,16 @@ namespace DOOR.EF.Models
         public virtual ICollection<Course> Courses { get; set; }
         [InverseProperty("School")]
         public virtual ICollection<Enrollment> Enrollments { get; set; }
+        [InverseProperty("School")]
+        public virtual ICollection<GradeConversion> GradeConversions { get; set; }
+        [InverseProperty("School")]
+        public virtual ICollection<GradeTypeWeight> GradeTypeWeights { get; set; }
+        [InverseProperty("School")]
+        public virtual ICollection<GradeType> GradeTypes { get; set; }
+        [InverseProperty("School")]
+        public virtual ICollection<Grade> Grades { get; set; }
+        [InverseProperty("School")]
+        public virtual ICollection<Instructor> Instructors { get; set; }
         [InverseProperty("School")]
         public virtual ICollection<Section> Sections { get; set; }
         [InverseProperty("School")]

@@ -16,6 +16,7 @@ namespace DOOR.EF.Models
         public Section()
         {
             Enrollments = new HashSet<Enrollment>();
+            GradeTypeWeights = new HashSet<GradeTypeWeight>();
         }
 
         [Key]
@@ -60,10 +61,15 @@ namespace DOOR.EF.Models
         [ForeignKey("CourseNo,SchoolId")]
         [InverseProperty("Sections")]
         public virtual Course Course { get; set; } = null!;
+        [ForeignKey("SchoolId,InstructorId")]
+        [InverseProperty("Sections")]
+        public virtual Instructor Instructor { get; set; } = null!;
         [ForeignKey("SchoolId")]
         [InverseProperty("Sections")]
         public virtual School School { get; set; } = null!;
         [InverseProperty("S")]
         public virtual ICollection<Enrollment> Enrollments { get; set; }
+        [InverseProperty("S")]
+        public virtual ICollection<GradeTypeWeight> GradeTypeWeights { get; set; }
     }
 }

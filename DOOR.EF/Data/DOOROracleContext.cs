@@ -26,16 +26,31 @@ namespace DOOR.EF.Data
         public virtual DbSet<Course> Courses { get; set; } = null!;
         public virtual DbSet<DeviceCode> DeviceCodes { get; set; } = null!;
         public virtual DbSet<Enrollment> Enrollments { get; set; } = null!;
+        public virtual DbSet<Grade> Grades { get; set; } = null!;
+        public virtual DbSet<GradeConversion> GradeConversions { get; set; } = null!;
+        public virtual DbSet<GradeType> GradeTypes { get; set; } = null!;
+        public virtual DbSet<GradeTypeWeight> GradeTypeWeights { get; set; } = null!;
+        public virtual DbSet<Instructor> Instructors { get; set; } = null!;
         public virtual DbSet<Key> Keys { get; set; } = null!;
         public virtual DbSet<OraTranslateMsg> OraTranslateMsgs { get; set; } = null!;
         public virtual DbSet<PersistedGrant> PersistedGrants { get; set; } = null!;
         public virtual DbSet<School> Schools { get; set; } = null!;
         public virtual DbSet<Section> Sections { get; set; } = null!;
         public virtual DbSet<Student> Students { get; set; } = null!;
+        public virtual DbSet<Zipcode> Zipcodes { get; set; } = null!;
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            if (!optionsBuilder.IsConfigured)
+            {
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
+                optionsBuilder.UseOracle("Data Source=3.80.81.224:1521/SPRING2023PDB;User ID=UD_GAVINY;Password=UD_GAVINY");
+            }
+        }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.HasDefaultSchema("DOOR_USER")
+            modelBuilder.HasDefaultSchema("UD_GAVINY")
                 .UseCollation("USING_NLS_COMP");
 
             modelBuilder.Entity<AspNetUser>(entity =>
@@ -129,9 +144,12 @@ namespace DOOR.EF.Data
                     .HasConstraintName("ENROLLMENT_FK2");
             });
 
-            modelBuilder.Entity<OraTranslateMsg>(entity =>
+            modelBuilder.Entity<Grade>(entity =>
             {
-                entity.Property(e => e.OraTranslateMsgId).HasDefaultValueSql("sys_guid()");
+                entity.HasKey(e => new { e.SchoolId, e.StudentId, e.SectionId, e.GradeTypeCode, e.GradeCodeOccurrence })
+                    .HasName("GRADE_PK");
+
+                entity.Property(e => e.GradeTypeCode).IsFixedLength();
 
                 entity.Property(e => e.CreatedBy).ValueGeneratedOnAdd();
 
@@ -140,6 +158,133 @@ namespace DOOR.EF.Data
                 entity.Property(e => e.ModifiedBy).ValueGeneratedOnAdd();
 
                 entity.Property(e => e.ModifiedDate).ValueGeneratedOnAdd();
+
+                entity.HasOne(d => d.School)
+                    .WithMany(p => p.Grades)
+                    .HasForeignKey(d => d.SchoolId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_FK1");
+
+                entity.HasOne(d => d.GradeTypeWeight)
+                    .WithMany(p => p.Grades)
+                    .HasForeignKey(d => new { d.SchoolId, d.SectionId, d.GradeTypeCode })
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_FK3");
+
+                entity.HasOne(d => d.S)
+                    .WithMany(p => p.Grades)
+                    .HasForeignKey(d => new { d.SectionId, d.StudentId, d.SchoolId })
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_FK2");
+            });
+
+            modelBuilder.Entity<GradeConversion>(entity =>
+            {
+                entity.HasKey(e => new { e.SchoolId, e.LetterGrade })
+                    .HasName("GRADE_CONVERSION_PK");
+
+                entity.Property(e => e.CreatedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.CreatedDate).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedDate).ValueGeneratedOnAdd();
+
+                entity.HasOne(d => d.School)
+                    .WithMany(p => p.GradeConversions)
+                    .HasForeignKey(d => d.SchoolId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_CONVERSION_FK1");
+            });
+
+            modelBuilder.Entity<GradeType>(entity =>
+            {
+                entity.HasKey(e => new { e.SchoolId, e.GradeTypeCode })
+                    .HasName("GRADE_TYPE_PK");
+
+                entity.Property(e => e.GradeTypeCode).IsFixedLength();
+
+                entity.Property(e => e.CreatedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.CreatedDate).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedDate).ValueGeneratedOnAdd();
+
+                entity.HasOne(d => d.School)
+                    .WithMany(p => p.GradeTypes)
+                    .HasForeignKey(d => d.SchoolId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_TYPE_FK1");
+            });
+
+            modelBuilder.Entity<GradeTypeWeight>(entity =>
+            {
+                entity.HasKey(e => new { e.SchoolId, e.SectionId, e.GradeTypeCode })
+                    .HasName("GRADE_TYPE_WEIGHT_PK");
+
+                entity.Property(e => e.GradeTypeCode).IsFixedLength();
+
+                entity.Property(e => e.CreatedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.CreatedDate).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedDate).ValueGeneratedOnAdd();
+
+                entity.HasOne(d => d.School)
+                    .WithMany(p => p.GradeTypeWeights)
+                    .HasForeignKey(d => d.SchoolId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_TYPE_WEIGHT_FK1");
+
+                entity.HasOne(d => d.GradeType)
+                    .WithMany(p => p.GradeTypeWeights)
+                    .HasForeignKey(d => new { d.SchoolId, d.GradeTypeCode })
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_TYPE_WEIGHT_FK2");
+
+                entity.HasOne(d => d.S)
+                    .WithMany(p => p.GradeTypeWeights)
+                    .HasForeignKey(d => new { d.SectionId, d.SchoolId })
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("GRADE_TYPE_WEIGHT_FK3");
+            });
+
+            modelBuilder.Entity<Instructor>(entity =>
+            {
+                entity.HasKey(e => new { e.SchoolId, e.InstructorId })
+                    .HasName("INSTRUCTOR_PK");
+
+                entity.Property(e => e.CreatedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.CreatedDate).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedDate).ValueGeneratedOnAdd();
+
+                entity.HasOne(d => d.School)
+                    .WithMany(p => p.Instructors)
+                    .HasForeignKey(d => d.SchoolId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("INSTRUCTOR_FK1");
+
+                entity.HasOne(d => d.ZipNavigation)
+                    .WithMany(p => p.Instructors)
+                    .HasForeignKey(d => d.Zip)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("INSTRUCTOR_FK2");
+            });
+
+            modelBuilder.Entity<OraTranslateMsg>(entity =>
+            {
+                entity.Property(e => e.OraTranslateMsgId)
+                    .ValueGeneratedOnAdd()
+                    .HasDefaultValueSql("sys_guid()");
             });
 
             modelBuilder.Entity<School>(entity =>
@@ -181,6 +326,12 @@ namespace DOOR.EF.Data
                     .HasForeignKey(d => new { d.CourseNo, d.SchoolId })
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("SECTION_FK1");
+
+                entity.HasOne(d => d.Instructor)
+                    .WithMany(p => p.Sections)
+                    .HasForeignKey(d => new { d.SchoolId, d.InstructorId })
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("SECTION_FK3");
             });
 
             modelBuilder.Entity<Student>(entity =>
@@ -205,7 +356,27 @@ namespace DOOR.EF.Data
                     .HasConstraintName("STUDENT_FK1");
             });
 
+            modelBuilder.Entity<Zipcode>(entity =>
+            {
+                entity.HasKey(e => e.Zip)
+                    .HasName("ZIP_PK");
+
+                entity.Property(e => e.CreatedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.CreatedDate).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedBy).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ModifiedDate).ValueGeneratedOnAdd();
+
+                entity.Property(e => e.State).IsFixedLength();
+            });
+
             modelBuilder.HasSequence("COURSE_SEQ");
+
+            modelBuilder.HasSequence("INSTRUCTOR_SEQ");
+
+            modelBuilder.HasSequence("ORA_TRANSLATE_MSG_SEQ");
 
             modelBuilder.HasSequence("SECTION_SEQ");
 

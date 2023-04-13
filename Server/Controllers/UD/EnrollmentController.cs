@@ -27,14 +27,16 @@ using System.Numerics;
 using DOOR.Shared.DTO;
 using DOOR.Shared.Utils;
 using DOOR.Server.Controllers.Common;
+using static System.Collections.Specialized.BitVector32;
+using Enrollment = DOOR.EF.Models.Enrollment;
 
 namespace CSBA6.Server.Controllers.app
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CourseController : BaseController
+    public class EnrollmentController : BaseController
     {
-        public CourseController(DOOROracleContext _DBcontext,
+        public EnrollmentController(DOOROracleContext _DBcontext,
             OraTransMsgs _OraTransMsgs)
             : base(_DBcontext, _OraTransMsgs)
 
@@ -43,69 +45,77 @@ namespace CSBA6.Server.Controllers.app
 
 
         [HttpGet]
-        [Route("GetCourse")]
-        public async Task<IActionResult> GetCourse()
+        [Route("GetEnrollment")]
+        public async Task<IActionResult> GetEnrollment()
         {
-            List<CourseDTO> lst = await _context.Courses
-                .Select(sp => new CourseDTO
+            List<EnrollmentDTO> lst = await _context.Enrollments
+                .Select(sp => new EnrollmentDTO
                 {
-                    Cost = sp.Cost,
-                    CourseNo = sp.CourseNo,
+                    StudentId = sp.StudentId,
+                    SectionId = sp.SectionId,
+                    EnrollDate = sp.EnrollDate,
+                    FinalGrade = sp.FinalGrade,
                     CreatedBy = sp.CreatedBy,
                     CreatedDate = sp.CreatedDate,
-                    Description = sp.Description,
                     ModifiedBy = sp.ModifiedBy,
                     ModifiedDate = sp.ModifiedDate,
-                    Prerequisite = sp.Prerequisite,
-                    SchoolId = sp.SchoolId,
-                    PrerequisiteSchoolId = sp.PrerequisiteSchoolId
+                    SchoolId = sp.SchoolId
                 }).ToListAsync();
             return Ok(lst);
         }
 
 
         [HttpGet]
-        [Route("GetCourse/{_CourseNo}")]
-        public async Task<IActionResult> GetCourse(int _CourseNo)
+        [Route("GetEnrollment/{_StudentId,_SectionId, _SchoolId}")]
+        public async Task<IActionResult> GetEnrollment(int _StudentId, int _SectionId, int _SchoolId)
         {
-            CourseDTO? lst = await _context.Courses
-                .Where(x => x.CourseNo == _CourseNo)
-                .Select(sp => new CourseDTO
+            EnrollmentDTO? lst = await _context.Enrollments
+                .Where(x => x.StudentId == _StudentId)
+                .Where(x => x.SectionId == _SectionId)
+                .Where(x => x.SchoolId == _SchoolId)
+                .Select(sp => new EnrollmentDTO
                 {
-                    Cost = sp.Cost,
-                    CourseNo = sp.CourseNo,
+                    StudentId = sp.StudentId,
+                    SectionId = sp.SectionId,
+                    EnrollDate = sp.EnrollDate,
+                    FinalGrade = sp.FinalGrade,
                     CreatedBy = sp.CreatedBy,
                     CreatedDate = sp.CreatedDate,
-                    Description = sp.Description,
                     ModifiedBy = sp.ModifiedBy,
                     ModifiedDate = sp.ModifiedDate,
-                    Prerequisite = sp.Prerequisite,
-                    SchoolId = sp.SchoolId,
-                    PrerequisiteSchoolId = sp.PrerequisiteSchoolId
+                    SchoolId = sp.SchoolId
                 }).FirstOrDefaultAsync();
             return Ok(lst);
         }
 
 
         [HttpPost]
-        [Route("PostCourse")]
-        public async Task<IActionResult> PostCourse([FromBody] CourseDTO _CourseDTO)
+        [Route("PostEnrollment")]
+        public async Task<IActionResult> PostEnrollment([FromBody] EnrollmentDTO _EnrollmentDTO)
         {
             try
             {
-                Course c = await _context.Courses.Where(x => x.CourseNo == _CourseDTO.CourseNo).FirstOrDefaultAsync();
+                Enrollment c = await _context.Enrollments
+                    .Where(x => x.StudentId == _EnrollmentDTO.StudentId)
+                    .Where(x => x.SectionId == _EnrollmentDTO.SectionId)
+                    .Where(x => x.SchoolId == _EnrollmentDTO.SchoolId)
+                    .FirstOrDefaultAsync();
 
                 if (c == null)
                 {
-                    c = new Course
+                    c = new Enrollment
                     {
-                        Cost = _CourseDTO.Cost,
-                        Description = _CourseDTO.Description,
-                        Prerequisite = _CourseDTO.Prerequisite,
-                        SchoolId = _CourseDTO.SchoolId,
-                        PrerequisiteSchoolId = _CourseDTO.PrerequisiteSchoolId
+                        StudentId = _EnrollmentDTO.StudentId,
+                        SectionId = _EnrollmentDTO.SectionId,
+                        EnrollDate = _EnrollmentDTO.EnrollDate,
+                        FinalGrade = _EnrollmentDTO.FinalGrade,
+                        CreatedBy = _EnrollmentDTO.CreatedBy,
+                        CreatedDate = _EnrollmentDTO.CreatedDate,
+                        ModifiedBy = _EnrollmentDTO.ModifiedBy,
+                        ModifiedDate = _EnrollmentDTO.ModifiedDate,
+                        SchoolId = _EnrollmentDTO.SchoolId
                     };
-                    _context.Courses.Add(c);
+                    _context.Enrollments.Add(c);
                     await _context.SaveChangesAsync();
                 }
             }
@@ -135,21 +145,29 @@ namespace CSBA6.Server.Controllers.app
 
 
         [HttpPut]
-        [Route("PutCourse")]
-        public async Task<IActionResult> PutCourse([FromBody] CourseDTO _CourseDTO)
+        [Route("PutEnrollment")]
+        public async Task<IActionResult> PutEnrollment([FromBody] EnrollmentDTO _EnrollmentDTO)
         {
             try
             {
-                Course c = await _context.Courses.Where(x => x.CourseNo == _CourseDTO.CourseNo).FirstOrDefaultAsync();
+                Enrollment ?c = await _context.Enrollments
+                    .Where(x => x.StudentId == _EnrollmentDTO.StudentId)
+                    .Where(x => x.SectionId == _EnrollmentDTO.SectionId)
+                    .Where(x => x.SchoolId == _EnrollmentDTO.SchoolId)
+                    .FirstOrDefaultAsync();
 
                 if (c != null)
                 {
-                    c.Description = _CourseDTO.Description;
-                    c.Cost = _CourseDTO.Cost;
-                    c.Prerequisite = _CourseDTO.Prerequisite;
-                    c.SchoolId = _CourseDTO.SchoolId;
-                    c.PrerequisiteSchoolId = _CourseDTO.PrerequisiteSchoolId;
-                    _context.Courses.Update(c);
+                    c.StudentId = _EnrollmentDTO.StudentId;
+                    c.SectionId = _EnrollmentDTO.SectionId;
+                    c.CreatedBy = _EnrollmentDTO.CreatedBy;
+                    c.CreatedDate = _EnrollmentDTO.CreatedDate;
+                    c.EnrollDate = _EnrollmentDTO.EnrollDate;
+                    c.ModifiedBy = _EnrollmentDTO.ModifiedBy;
+                    c.ModifiedDate = _EnrollmentDTO.ModifiedDate;
+                    c.FinalGrade = _EnrollmentDTO.FinalGrade;
+                    c.SchoolId = _EnrollmentDTO.SchoolId;
+                    _context.Enrollments.Update(c);
                     await _context.SaveChangesAsync();
                 }
             }
@@ -173,16 +191,20 @@ namespace CSBA6.Server.Controllers.app
 
 
         [HttpDelete]
-        [Route("DeleteCourse/{_CourseNo}")]
-        public async Task<IActionResult> DeleteCourse(int _CourseNo)
+        [Route("DeleteEnrollment/{_StudentId, _SectionId, _SchoolId}")]
+        public async Task<IActionResult> DeleteEnrollment(int _StudentId, int _SectionId, int _SchoolId)
         {
             try
             {
-                Course c = await _context.Courses.Where(x => x.CourseNo == _CourseNo).FirstOrDefaultAsync();
+                Enrollment c = await _context.Enrollments
+                    .Where(x => x.StudentId == _StudentId)
+                    .Where(x => x.SectionId == _SectionId)
+                    .Where(x => x.SchoolId == _SchoolId)
+                    .FirstOrDefaultAsync();
 
                 if (c != null)
                 {
-                    _context.Courses.Remove(c);
+                    _context.Enrollments.Remove(c);
                     await _context.SaveChangesAsync();
                 }
             }

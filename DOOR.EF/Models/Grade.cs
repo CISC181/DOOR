@@ -6,16 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DOOR.EF.Models
 {
-    [Table("ENROLLMENT")]
-    [Index("StudentId", "SectionId", Name = "ENR_PK", IsUnique = true)]
-    [Index("SectionId", Name = "ENR_SECT_FK_I")]
-    public partial class Enrollment
+    [Table("GRADE")]
+    public partial class Grade
     {
-        public Enrollment()
-        {
-            Grades = new HashSet<Grade>();
-        }
-
+        [Key]
+        [Column("SCHOOL_ID")]
+        [Precision(8)]
+        public int SchoolId { get; set; }
         [Key]
         [Column("STUDENT_ID")]
         [Precision(8)]
@@ -24,11 +21,19 @@ namespace DOOR.EF.Models
         [Column("SECTION_ID")]
         [Precision(8)]
         public int SectionId { get; set; }
-        [Column("ENROLL_DATE", TypeName = "DATE")]
-        public DateTime EnrollDate { get; set; }
-        [Column("FINAL_GRADE")]
+        [Key]
+        [Column("GRADE_TYPE_CODE")]
+        [StringLength(2)]
+        [Unicode(false)]
+        public string GradeTypeCode { get; set; } = null!;
+        [Key]
+        [Column("GRADE_CODE_OCCURRENCE")]
         [Precision(3)]
-        public byte? FinalGrade { get; set; }
+        public byte GradeCodeOccurrence { get; set; }
+        [Column("NUMERIC_GRADE", TypeName = "NUMBER(5,2)")]
+        public decimal NumericGrade { get; set; }
+        [Column("COMMENTS", TypeName = "CLOB")]
+        public string? Comments { get; set; }
         [Column("CREATED_BY")]
         [StringLength(30)]
         [Unicode(false)]
@@ -41,21 +46,15 @@ namespace DOOR.EF.Models
         public string ModifiedBy { get; set; } = null!;
         [Column("MODIFIED_DATE", TypeName = "DATE")]
         public DateTime ModifiedDate { get; set; }
-        [Key]
-        [Column("SCHOOL_ID")]
-        [Precision(8)]
-        public int SchoolId { get; set; }
 
-        [ForeignKey("SectionId,SchoolId")]
-        [InverseProperty("Enrollments")]
-        public virtual Section S { get; set; } = null!;
-        [ForeignKey("StudentId,SchoolId")]
-        [InverseProperty("Enrollments")]
-        public virtual Student SNavigation { get; set; } = null!;
+        [ForeignKey("SchoolId,SectionId,GradeTypeCode")]
+        [InverseProperty("Grades")]
+        public virtual GradeTypeWeight GradeTypeWeight { get; set; } = null!;
+        [ForeignKey("SectionId,StudentId,SchoolId")]
+        [InverseProperty("Grades")]
+        public virtual Enrollment S { get; set; } = null!;
         [ForeignKey("SchoolId")]
-        [InverseProperty("Enrollments")]
+        [InverseProperty("Grades")]
         public virtual School School { get; set; } = null!;
-        [InverseProperty("S")]
-        public virtual ICollection<Grade> Grades { get; set; }
     }
 }

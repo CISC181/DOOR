@@ -27,14 +27,16 @@ using System.Numerics;
 using DOOR.Shared.DTO;
 using DOOR.Shared.Utils;
 using DOOR.Server.Controllers.Common;
+using static System.Collections.Specialized.BitVector32;
+using Section = DOOR.EF.Models.Section;
 
 namespace CSBA6.Server.Controllers.app
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CourseController : BaseController
+    public class SectionController : BaseController
     {
-        public CourseController(DOOROracleContext _DBcontext,
+        public SectionController(DOOROracleContext _DBcontext,
             OraTransMsgs _OraTransMsgs)
             : base(_DBcontext, _OraTransMsgs)
 
@@ -43,69 +45,80 @@ namespace CSBA6.Server.Controllers.app
 
 
         [HttpGet]
-        [Route("GetCourse")]
-        public async Task<IActionResult> GetCourse()
+        [Route("GetSection")]
+        public async Task<IActionResult> GetSection()
         {
-            List<CourseDTO> lst = await _context.Courses
-                .Select(sp => new CourseDTO
+            List<SectionDTO> lst = await _context.Sections
+                .Select(sp => new SectionDTO
                 {
-                    Cost = sp.Cost,
-                    CourseNo = sp.CourseNo,
+                    SectionId = sp.SectionId,
+                    SectionNo = sp.SectionNo,
                     CreatedBy = sp.CreatedBy,
                     CreatedDate = sp.CreatedDate,
-                    Description = sp.Description,
+                    Location = sp.Location,
                     ModifiedBy = sp.ModifiedBy,
                     ModifiedDate = sp.ModifiedDate,
-                    Prerequisite = sp.Prerequisite,
+                    InstructorId = sp.InstructorId,
                     SchoolId = sp.SchoolId,
-                    PrerequisiteSchoolId = sp.PrerequisiteSchoolId
+                    Capacity = (int)sp.Capacity,
+                    CourseNo = sp.CourseNo,
+                    StartDateTime = (DateTime)sp.StartDateTime
                 }).ToListAsync();
             return Ok(lst);
         }
 
 
         [HttpGet]
-        [Route("GetCourse/{_CourseNo}")]
-        public async Task<IActionResult> GetCourse(int _CourseNo)
+        [Route("GetSection/{_SectionId}")]
+        public async Task<IActionResult> GetSection(int _SectionId)
         {
-            CourseDTO? lst = await _context.Courses
-                .Where(x => x.CourseNo == _CourseNo)
-                .Select(sp => new CourseDTO
+            SectionDTO? lst = await _context.Sections
+                .Where(x => x.SectionId == _SectionId)
+                .Select(sp => new SectionDTO
                 {
-                    Cost = sp.Cost,
-                    CourseNo = sp.CourseNo,
+                    SectionId = sp.SectionId,
+                    SectionNo = sp.SectionNo,
                     CreatedBy = sp.CreatedBy,
                     CreatedDate = sp.CreatedDate,
-                    Description = sp.Description,
+                    Location = sp.Location,
                     ModifiedBy = sp.ModifiedBy,
                     ModifiedDate = sp.ModifiedDate,
-                    Prerequisite = sp.Prerequisite,
+                    InstructorId = sp.InstructorId,
                     SchoolId = sp.SchoolId,
-                    PrerequisiteSchoolId = sp.PrerequisiteSchoolId
+                    Capacity = (int)sp.Capacity,
+                    CourseNo = sp.CourseNo,
+                    StartDateTime = (DateTime)sp.StartDateTime
                 }).FirstOrDefaultAsync();
             return Ok(lst);
         }
 
 
         [HttpPost]
-        [Route("PostCourse")]
-        public async Task<IActionResult> PostCourse([FromBody] CourseDTO _CourseDTO)
+        [Route("PostSection")]
+        public async Task<IActionResult> PostSection([FromBody] SectionDTO _SectionDTO)
         {
             try
             {
-                Course c = await _context.Courses.Where(x => x.CourseNo == _CourseDTO.CourseNo).FirstOrDefaultAsync();
+                Section c = await _context.Sections.Where(x => x.SectionId == _SectionDTO.SectionId).FirstOrDefaultAsync();
 
                 if (c == null)
                 {
-                    c = new Course
+                    c = new Section
                     {
-                        Cost = _CourseDTO.Cost,
-                        Description = _CourseDTO.Description,
-                        Prerequisite = _CourseDTO.Prerequisite,
-                        SchoolId = _CourseDTO.SchoolId,
-                        PrerequisiteSchoolId = _CourseDTO.PrerequisiteSchoolId
+                        SectionId = _SectionDTO.SectionId,
+                        SectionNo = (byte)_SectionDTO.SectionNo,
+                        CreatedBy = _SectionDTO.CreatedBy,
+                        CreatedDate = _SectionDTO.CreatedDate,
+                        Location = _SectionDTO.Location,
+                        ModifiedBy = _SectionDTO.ModifiedBy,
+                        ModifiedDate = _SectionDTO.ModifiedDate,
+                        InstructorId = _SectionDTO.InstructorId,
+                        SchoolId = _SectionDTO.SchoolId,
+                        Capacity = (byte?)_SectionDTO.Capacity,
+                        CourseNo = _SectionDTO.CourseNo,
+                        StartDateTime = (DateTime)_SectionDTO.StartDateTime
                     };
-                    _context.Courses.Add(c);
+                    _context.Sections.Add(c);
                     await _context.SaveChangesAsync();
                 }
             }
@@ -135,21 +148,28 @@ namespace CSBA6.Server.Controllers.app
 
 
         [HttpPut]
-        [Route("PutCourse")]
-        public async Task<IActionResult> PutCourse([FromBody] CourseDTO _CourseDTO)
+        [Route("PutSection")]
+        public async Task<IActionResult> PutSection([FromBody] SectionDTO _SectionDTO)
         {
             try
             {
-                Course c = await _context.Courses.Where(x => x.CourseNo == _CourseDTO.CourseNo).FirstOrDefaultAsync();
+                Section c = await _context.Sections.Where(x => x.SectionId == _SectionDTO.SectionId).FirstOrDefaultAsync();
 
                 if (c != null)
                 {
-                    c.Description = _CourseDTO.Description;
-                    c.Cost = _CourseDTO.Cost;
-                    c.Prerequisite = _CourseDTO.Prerequisite;
-                    c.SchoolId = _CourseDTO.SchoolId;
-                    c.PrerequisiteSchoolId = _CourseDTO.PrerequisiteSchoolId;
-                    _context.Courses.Update(c);
+                    c.SectionId = _SectionDTO.SectionId;
+                    c.SectionNo = (byte)_SectionDTO.SectionNo;
+                    c.CreatedBy = _SectionDTO.CreatedBy;
+                    c.CreatedDate = _SectionDTO.CreatedDate;
+                    c.Location = _SectionDTO.Location;
+                    c.ModifiedBy = _SectionDTO.ModifiedBy;
+                    c.ModifiedDate = _SectionDTO.ModifiedDate;
+                    c.InstructorId = _SectionDTO.InstructorId;
+                    c.SchoolId = _SectionDTO.SchoolId;
+                    c.Capacity = (byte?)_SectionDTO.Capacity;
+                    c.CourseNo = _SectionDTO.CourseNo;
+                    c.StartDateTime = (DateTime)_SectionDTO.StartDateTime;
+                    _context.Sections.Update(c);
                     await _context.SaveChangesAsync();
                 }
             }
@@ -173,16 +193,16 @@ namespace CSBA6.Server.Controllers.app
 
 
         [HttpDelete]
-        [Route("DeleteCourse/{_CourseNo}")]
-        public async Task<IActionResult> DeleteCourse(int _CourseNo)
+        [Route("DeleteSection/{_SectionId}")]
+        public async Task<IActionResult> DeleteSection(int _SectionId)
         {
             try
             {
-                Course c = await _context.Courses.Where(x => x.CourseNo == _CourseNo).FirstOrDefaultAsync();
+                Section c = await _context.Sections.Where(x => x.SectionId == _SectionId).FirstOrDefaultAsync();
 
                 if (c != null)
                 {
-                    _context.Courses.Remove(c);
+                    _context.Sections.Remove(c);
                     await _context.SaveChangesAsync();
                 }
             }

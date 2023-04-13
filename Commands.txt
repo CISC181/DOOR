@@ -22,7 +22,10 @@ https://www.entityframeworktutorial.net/efcore/cli-commands-for-ef-core-migratio
 Example...
 instead of add-migration initial
 it is:
-dotnet ef migrations add initial
+dotnet ef migrations add initial --context ApplicationDbContext
+
+dotnet ef database update --context ApplicationDbContext
+
 
 For Mac:
 Install .net 6.0 CLI, start the CLI
@@ -32,4 +35,4 @@ CD to root of project
 Add package 
 Microsoft.EntityFrameworkCore.Design to EF project
 
-dotnet ef dbcontext scaffold "Data Source=3.80.81.224:1521/SPRING2023PDB;User ID=UD_BRAGUI;Password=UD_BRAGUI" Oracle.EntityFrameworkCore --output-dir Models --context-dir Data --project "DOOR.EF" --context "DOOROracleContext" --data-annotations --force
+dotnet ef dbcontext scaffold "Data Source=3.80.81.224:1521/SPRING2023PDB;User ID=UD_GAVINY;Password=UD_GAVINY" Oracle.EntityFrameworkCore --output-dir Models --context-dir Data --project "DOOR.EF" --context "DOOROracleContext" --data-annotations --force
